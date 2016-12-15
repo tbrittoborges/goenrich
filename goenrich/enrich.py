@@ -90,7 +90,7 @@ def induced_subgraph(O, terms):
 
 def calculate_pvalues(nodes, query, background_attribute, M,
         min_category_size=3, max_category_size=500,
-        max_category_depth=5, **kwargs):
+        max_category_depth=10, **kwargs):
     """ calculate pvalues for all categories in the graph
     
     :param G: ontology graph after background was set
