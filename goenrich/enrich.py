@@ -107,11 +107,6 @@ def calculate_pvalues(nodes, query, background_attribute, M,
         n = len(background)
         hits = query.intersection(background)
         x = len(hits)
-        # if ((node.get('depth', 0) > max_category_depth)
-        #     or (n <= min_category_size)
-        #     or (n > max_category_size)):
-        #     vals.append((float('NaN'), x, n))
-        # else:
         vals.append((hypergeom.sf(x, M, n, N), x, n))
     return zip(*vals)
 
