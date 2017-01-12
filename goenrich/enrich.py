@@ -31,7 +31,7 @@ def analyze(O, query, background_attribute, **kwargs):
     df = goenrich.export.to_frame(nodes, term=terms, q=qs, rejected=rejs,
             p=ps, x=xs, n=ns, M=M, N=N)
     if 'gvfile' in options:
-        sig = df.loc['term']
+        sig = df['term']
         G = induced_subgraph(O, sig)
         for term, node, q, x, n, rej in zip(terms, nodes, qs, xs, ns, rejs):
             if term in G:
