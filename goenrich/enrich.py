@@ -26,8 +26,7 @@ def analyze(O, query, background_attribute, **kwargs):
     terms, nodes = zip(*O.nodes(data=True))
     M = len({x for n in nodes for x in n[background_attribute]}) # all ids used
     N = len(_query)
-    ps, xs, ns = modified_calculate_pvalues(nodes, _query, background_attribute,
-            M, **options)
+    ps, xs, ns = modified_calculate_pvalues(nodes, _query, background_attribute, **options)
     qs, rejs = multiple_testing_correction(ps, **options)
     df = goenrich.export.to_frame(nodes, term=terms, q=qs, rejected=rejs,
             p=ps, x=xs, n=ns, M=M, N=N)
