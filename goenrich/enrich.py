@@ -31,15 +31,15 @@ def analyze(O, query, background_attribute, **kwargs):
     qs, rejs = multiple_testing_correction(ps, **options)
     df = goenrich.export.to_frame(nodes, term=terms, q=qs, rejected=rejs,
                                   p=ps, x=xs, n=ns, M=M, N=N)
-    print df.head()
     if 'gvfile' in options:
 
         sig = df['term']
         G = induced_subgraph(O, sig)
         for term, node, q, x, n, rej in zip(terms, nodes, qs, xs, ns, rejs):
             if term in G:
+                significant = ps < 0.5
                 G.node[term].update({'name': node['name'], 'x': x,
-                                     'q': q, 'n': n, 'significant': rej})
+                                     'q': q, 'n': n, 'significant': significant})
         G.reverse(copy=False)
         goenrich.export.to_graphviz(G, **options)
     return df
