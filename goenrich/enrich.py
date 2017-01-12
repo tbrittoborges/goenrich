@@ -37,7 +37,7 @@ def analyze(O, query, background_attribute, **kwargs):
         G = induced_subgraph(O, sig)
         for term, node, q, x, n, rej in zip(terms, nodes, qs, xs, ns, rejs):
             if term in G:
-                significant = ps < 0.5
+                significant = ps < 0.05
                 G.node[term].update({'name': node['name'], 'x': x,
                                      'q': q, 'n': n, 'significant': significant})
         G.reverse(copy=False)
