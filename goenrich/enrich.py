@@ -26,18 +26,13 @@ def analyze(O, query, background_attribute, **kwargs):
     terms, nodes = zip(*O.nodes(data=True))
     M = len({x for n in nodes for x in n[background_attribute]}) # all ids used
     N = len(_query)
-    ps, xs, ns = calculate_pvalues(nodes, _query, background_attribute,
+    ps, xs, ns = modified_calculate_pvalues(nodes, _query, background_attribute,
             M, **options)
     qs, rejs = multiple_testing_correction(ps, **options)
     df = goenrich.export.to_frame(nodes, term=terms, q=qs, rejected=rejs,
             p=ps, x=xs, n=ns, M=M, N=N)
     if 'gvfile' in options:
-        show = options['show']
-        if show.startswith('top'):
-            top = int(show.replace('top', ''))
-            sig = df.sort('q').head(top)['term']
-        else:
-            raise NotImplementedError(show)
+        sig = df.loc['term']
         G = induced_subgraph(O, sig)
         for term, node, q, x, n, rej in zip(terms, nodes, qs, xs, ns, rejs):
             if term in G:
@@ -90,7 +85,7 @@ def induced_subgraph(O, terms):
 
 def calculate_pvalues(nodes, query, background_attribute, M,
         min_category_size=3, max_category_size=500,
-        max_category_depth=10, **kwargs):
+        max_category_depth=5, **kwargs):
     """ calculate pvalues for all categories in the graph
     
     :param G: ontology graph after background was set
@@ -107,7 +102,33 @@ def calculate_pvalues(nodes, query, background_attribute, M,
         n = len(background)
         hits = query.intersection(background)
         x = len(hits)
+        if ((node.get('depth', 0) > max_category_depth)
+            or (n <= min_category_size)
+            or (n > max_category_size)):
+            vals.append((float('NaN'), x, n))
+        else:
         vals.append((hypergeom.sf(x, M, n, N), x, n))
+    return zip(*vals)
+
+
+def modified_calculate_pvalues(nodes, query, background_attribute, **kwargs):
+    """ calculate pvalues for all categories in the graph
+
+    :param G: ontology graph after background was set
+    :param query: set of identifiers
+    :param background_attribute: node attribute assoc. with the background set
+    :param min_category_size: categories smaller than this number are ignored
+    :param max_category_size: categories larger than this number are ignored
+    :returns: pvalues, x, n
+    """
+    N = len(query)
+    vals = []
+    for node in nodes:
+        background = node[background_attribute]
+        n = len(background)
+        hits = query.intersection(background)
+        x = len(hits)
+        vals.append((hypergeom.sf(x, 72000, 7200, N), x, n))
     return zip(*vals)
 
 def multiple_testing_correction(ps, alpha=0.05,
