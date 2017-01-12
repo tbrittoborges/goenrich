@@ -5,6 +5,7 @@ from statsmodels.stats.multitest import fdrcorrection
 
 import goenrich.export
 
+
 def analyze(O, query, background_attribute, **kwargs):
     """ run enrichment analysis for query
 
@@ -19,28 +20,31 @@ def analyze(O, query, background_attribute, **kwargs):
     :returns: pandas.DataFrame with results
     """
     options = {
-            'show' : 'top20'
+        'show': 'top20'
     }
     options.update(kwargs)
     _query = set(query)
     terms, nodes = zip(*O.nodes(data=True))
-    M = len({x for n in nodes for x in n[background_attribute]}) # all ids used
+    M = len({x for n in nodes for x in n[background_attribute]})  # all ids used
     N = len(_query)
     ps, xs, ns = modified_calculate_pvalues(nodes, _query, background_attribute, **options)
     qs, rejs = multiple_testing_correction(ps, **options)
     df = goenrich.export.to_frame(nodes, term=terms, q=qs, rejected=rejs,
-            p=ps, x=xs, n=ns, M=M, N=N)
+                                  p=ps, x=xs, n=ns, M=M, N=N)
+    print df.head()
     if 'gvfile' in options:
+
         sig = df['term']
         G = induced_subgraph(O, sig)
         for term, node, q, x, n, rej in zip(terms, nodes, qs, xs, ns, rejs):
             if term in G:
-                G.node[term].update({'name' : node['name'], 'x' : x,
-                    'q' : q, 'n' : n, 'significant' : rej})
+                G.node[term].update({'name': node['name'], 'x': x,
+                                     'q': q, 'n': n, 'significant': rej})
         G.reverse(copy=False)
         goenrich.export.to_graphviz(G, **options)
     return df
-    
+
+
 def propagate(O, values, attribute):
     """ Propagate values trough the hierarchy
     
@@ -62,6 +66,7 @@ def propagate(O, values, attribute):
         for p in O[n]:
             O.node[p].setdefault(attribute, set()).update(current)
 
+
 def induced_subgraph(O, terms):
     """  Extracts a subgraph from O including the provided terms
     and all higher hierarchy
@@ -82,9 +87,10 @@ def induced_subgraph(O, terms):
                 nodes.update(path)
     return O.subgraph(nodes)
 
+
 def calculate_pvalues(nodes, query, background_attribute, M,
-        min_category_size=3, max_category_size=500,
-        max_category_depth=5, **kwargs):
+                      min_category_size=3, max_category_size=500,
+                      max_category_depth=5, **kwargs):
     """ calculate pvalues for all categories in the graph
     
     :param G: ontology graph after background was set
@@ -130,8 +136,9 @@ def modified_calculate_pvalues(nodes, query, background_attribute, **kwargs):
         vals.append((hypergeom.sf(x, 72000, 7200, N), x, n))
     return zip(*vals)
 
+
 def multiple_testing_correction(ps, alpha=0.05,
-        method='benjamini-hochberg', **kwargs):
+                                method='benjamini-hochberg', **kwargs):
     """ correct pvalues for multiple testing and add corrected `q` value
     
     :param ps: list of pvalues
